@@ -629,3 +629,40 @@ div{
 }
 ```
 
+9.3d从中间出现的悬浮框
+
+```scss
+/deep/ .el-dialog__wrapper {
+      transition-duration: 0.3s;
+    }
+   /deep/  .dialog-fade-enter-active{
+      animation: none !important;
+       .el-dialog{
+          animation-fill-mode: forwards;
+          animation-duration: 0.3s;
+          animation-name: anim-open;
+          animation-timing-function: cubic-bezier(0.6,0,0.4,1);
+       }
+    }
+   /deep/  .dialog-fade-leave-active {
+      transition-duration: 0.15s !important;
+        .el-dialog{
+            animation: none !important;
+            animation-fill-mode: forwards;
+            animation-duration: 0.3s;
+            animation-name: anim-close;
+        }
+    }
+    
+    @keyframes anim-open {
+      0% { opacity: 0;  transform: scale3d(0, 0, 1); }
+      100% { opacity: 1; transform: scale3d(1, 1, 1); }
+    }
+    
+    
+    @keyframes anim-close {
+      0% { opacity: 1; }
+      100% { opacity: 0; transform: scale3d(0.5, 0.5, 1); }
+    }
+```
+

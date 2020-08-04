@@ -280,3 +280,74 @@ let m=document.getElementById(id)
 window.getComputedStyle(m).fontSize
 ```
 
+# 10.数组的fill方法
+
+fill用于填充数组，用法array(length).fill(something),得到[somrthing*length]
+
+例如
+
+```js
+let top = Array(2).fill('1')
+console.log(top)//['1','1']
+```
+
+## 注意
+
+使用Array(length).fill({ }) 这样填充的数组，里面的每一项{ }都是全相等的,
+
+```js
+let arr = Array(6).fill({});
+console.log(arr[1] === arr[2])    //true
+
+//哪怕是使用 new Object() 来创建每一项，一旦使用fill(), 则每一项也全等
+let  other = Array(6).fill( new Object() )
+console.log(other[1] === other[2])       //true 
+
+//即使使用 Object.create({ }), 也是一样的效果
+let  arr_new = Array(6).fill( Object.create({}) )
+console.log(arr_new[1] === arr_new[2])    //true
+```
+
+## 创建固定长度固定内容的数组
+
+```js
+let arr = new Array(2).fill({ })//或者null都可以，只要不让其只有长度
+//使用map填充具体内容
+arr = arr.map((val)=>{
+	val = {xx:'',dd:''}
+	return val
+})
+```
+
+# 移动端检测用的是wifi还是流量
+
+```js
+getNetworkType() {
+            var ua = navigator.userAgent;
+            var networkStr = ua.match(/NetType\/\w+/) ? ua.match(/NetType\/\w+/)[0] : 'NetType/other';
+            networkStr = networkStr.toLowerCase().replace('nettype/', '');
+            var networkType;
+            console.log('ua',ua)
+            switch(networkStr) {
+                case 'wifi':
+                    networkType = 'wifi';
+                    break;
+                case '4g':
+                    networkType = '4g';
+                    break;
+                case '3g':
+                    networkType = '3g';
+                    break;
+                case '3gnet':
+                    networkType = '3g';
+                    break;
+                case '2g':
+                    networkType = '2g';
+                    break;
+                default:
+                    networkType = 'other';
+            }
+            alert(networkStr)
+        },
+```
+
