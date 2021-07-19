@@ -666,3 +666,40 @@ div{
     }
 ```
 
+# 10.动态设置与宽相同的高
+
+```vue
+//html
+<div>
+	<div class="box">
+        <div class="box-item">
+            
+        </div>
+    </div>	
+</div>
+//css
+.box{
+	width:23%;
+    margin-right: calc(8% / 3);
+    margin-top:1vh;
+    background:#006AF1;
+    position: relative;
+}
+//关键，padding-top设为100%；margin padding 赋值为%百分比的时候，是按父元素的width为参照物
+.box::before{
+    content:'';
+    padding-top:100%;
+    width:0;
+    box-sizing: border-box;
+    display: block;
+
+  }
+  .box-item{
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%
+  }
+```
+

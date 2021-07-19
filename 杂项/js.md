@@ -351,3 +351,30 @@ getNetworkType() {
         },
 ```
 
+# 视频设置第一帧为封面
+
+```js
+//video标签设置poster(规定视频下载时显示的图像，或者在用户点击播放按钮前显示的图像。).
+getVideoBase64(url) {
+        return new Promise(function (resolve, reject) {
+            let dataURL = '';
+            let video = document.createElement("video");
+            video.setAttribute('crossOrigin', 'anonymous');//处理跨域
+            video.setAttribute('src', url);
+            video.setAttribute('width', 400);
+            video.setAttribute('height', 240);
+            //监听loaddata，当当前帧的数据已加载，但没有足够的数据来播放指定音频/视频的下一帧时，会发生 loadeddata 事件
+            video.addEventListener('loadeddata', function () {
+                let canvas = document.createElement("canvas"),
+                    width = video.width, //canvas的尺寸和图片一样
+                    height = video.height;
+                canvas.width = width;
+                canvas.height = height;
+                canvas.getContext("2d").drawImage(video, 0, 0, width, height); //绘制canvas
+                dataURL = canvas.toDataURL('image/jpeg'); //转换为base64
+                resolve(dataURL);
+            });
+        })
+    }
+```
+
