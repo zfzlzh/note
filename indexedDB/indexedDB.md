@@ -95,7 +95,7 @@ if(!indexedDB)
 */
 let request = indexedDB.open(name, version);
 let database
-//成功
+//成功，出现 A version change transaction is running.报错，在onsuccess后再执行
 request.onsuccess = function (e){
     database = e.target.result
 }

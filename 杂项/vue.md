@@ -220,3 +220,35 @@ module.exports = {
 }
 ```
 
+# vue-cli 4 全局加载scss等预处理器文件
+
+直接在main.js文件中引入预处理器文件无法使用文件中的@mixin、@extend文件中的样式等，需使用style-resources-loader，并配置对应的地址
+
+```js
+//vue-cli环境搭建好以后，执行vue add style-resources-loader,添加后会让你选择哪种预处理器，在webpack.conf.js或vue.conf.js（无会生成）中生成对应代码，不用在main.js文件中引入scss文件
+const path = require('path') //该行没有自行添加
+module.exports = {
+  pluginOptions: {
+    'style-resources-loader': {
+      preProcessor: 'scss',
+      patterns: [
+		  path.resolve(__dirname,`./static/css/global.scss`) //需要全局导入的scss文件
+	  ]
+    }
+  }
+}
+```
+
+# 修改node_modules中文件----path-package
+
+```js
+//package.json文件添加
+"scripts": {
+  "postinstall": "patch-package"
+}
+//执行npm i patch-package -S安装path-package
+//在 node_modules 里面修改依赖包的代码
+//每次修改代码之后执行命令 npx patch-package request    --request为修改的modules包名称，例如修改了element-ui的文件，执行时输入npx patch-package element-ui
+//执行成功后根目录下会出现patches文件夹，里面保存着修改过的文件记录
+```
+
