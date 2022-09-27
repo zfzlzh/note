@@ -252,3 +252,369 @@ module.exports = {
 //执行成功后根目录下会出现patches文件夹，里面保存着修改过的文件记录
 ```
 
+# 同源页面跳转，url改变页面不改变
+
+使用window.open / window.history / window.location.href跳转页面，会出现url改变但是页面需要刷新才改变的情况，原因为**只改变了#后的部分，其实同属一个链接，所以不触发更新，**
+
+方法：**监听hashchange事件,判断新旧url的path是否一致，一致就触发刷新操作**
+
+```js
+window.addEventListener('hashchange',hashchangeHanlde)
+function hashchangeHanlde(event: {[propName:string]:any}){
+  let { oldURL,newURL } = event
+  let oldUrlPath = oldURL.split('/#/')[0]
+  let newUrlPath = newURL.split('/#/')[0]
+  if(oldUrlPath === newUrlPath){
+    window.location.reload()
+  }
+}
+```
+
+# vue2与webpack2配置多入口
+
+src目录下创建modules文件夹，创建多入口各个入口的文件夹，将main.js,index.html,App.vue复制到每个文件夹中，修改为各自的名称，如果有各自入口唯一的页面，也可以放在这里，main文件中的内容大致相同，只有部分小区别，可以将main文件封装，然后各自的main文件中引入传参
+
+公共的main文件
+
+```js
+// The Vue build version to load with the `import` command
+// (runtime-only or standalone) has been set in webpack.base.conf with an alias.
+import "babel-polyfill";
+// import Vue from "vue";
+import ElementUI from "element-ui";
+import store from "@/store";
+
+import Global from "@/components/common/Global.vue";
+import RequestUtil from "@/utils/RequestUtil.js";
+import CommonUtils from "@/utils/CommonUtils.js";
+import SearchUtils from "@/utils/SearchUtils.js";
+import Pagination from "@/components/common/pagination";
+import searchInput from "@/components/common/searchInput";
+import textareaCheckRows from "@/components/common/textareaCheckRows";
+import addressChoice from "@/components/address/addressChoice";
+import DatePicker from "vue2-datepicker";
+import tabsGetSession from '@/utils/tabsGetSession'
+
+import common from "@/components/js/common.js";
+
+import "iview/dist/styles/iview.css";
+import "element-ui/lib/theme-chalk/index.css";
+import "../static/css/global.css";
+import "../static/css/theme.sass";
+import "../static/css/muliteSelect.css"
+import echarts from "echarts";
+import moment from "moment";
+import "vue2-datepicker/index.css";
+import "vue2-datepicker/locale/zh-cn";
+import { Message } from "element-ui";
+import {
+  Button as IV_Button,
+  Table as IV_Table,
+  Modal as IV_Modal,
+  FormItem as IV_FormItem
+} from "iview";
+import Axios from "axios";
+// import { compact } from 'lodash'
+import lodash from "lodash";
+import Vue from "vue";
+import VueDraggableResizable from "vue-draggable-resizable-gorkys";
+
+// // 可选择导入默认样式
+import "vue-draggable-resizable-gorkys/dist/VueDraggableResizable.css";
+//
+import VueSlider from "vue-slider-component";
+import "vue-slider-component/theme/antd.css";
+import { keyDownF11 } from "@/components/keyDownF11.js";
+import ws from "@/components/websocket/websocket.js";
+import operation from '@/utils/operation'
+// import VueAMap from "vue-amap";
+//不同客户使用的不同大屏与名称
+import dashboardPre from '@/modules/settingJson/dashboardPre.json'
+import customName from '@/modules/settingJson/customName'
+import { children } from '@/modules/settingJson/customRouter'
+// import screenResize from "./components/js/screenResize";
+//多页面公共代码，各页面引入使用
+export default class main{
+  /**
+   * 
+   * @param {*String} pageType 当前客户
+   * @param {*Vue} App 当前客户页面所用的app.vue
+   * @param {*Vue} router 当前客户页面所用的路由
+   */
+  constructor(pageType,App,router){
+    this.initMain(pageType,App,router)
+  }
+  initMain(type,App,router){
+    Vue.component("vue-draggable-resizable", VueDraggableResizable);
+    Vue.component("VueSlider", VueSlider);
+    Vue.component("Button", IV_Button);
+    Vue.component("Table", IV_Table);
+    Vue.component("Modal", IV_Modal);
+    Vue.component("Pagination", Pagination);
+    Vue.component("searchInput", searchInput);
+    Vue.component("textareaCheckRows", textareaCheckRows);
+    Vue.component("addressChoice", addressChoice);
+    Vue.component("DatePicker", DatePicker);
+    Vue.use(ElementUI, { size: "small" });
+    Vue.config.productionTip = false;
+    Vue.use(store);
+    Vue.use(common);
+    //获取对应客户的大屏权限与名称
+    let dashboard = dashboardPre[type]
+    let childrenCustom = children[type]
+    Global.MENUS = { ...Global.MENUS, ...dashboard }
+    let custom = customName[type]
+    if(custom.hasAreaTypeKpiList){
+      Global.MENU.kpiList = "系统KPI管理"
+      Global.MENUS.kpiList.name = "系统KPI管理"
+    }
+    //获取特有页面router
+    if (childrenCustom){
+      router.options.routes[0].children =  [...router.options.routes[0].children,...childrenCustom]
+    }
+    const bus = new Vue();
+    Vue.prototype.$eventBus = bus;
+    Vue.prototype.$echarts = echarts;
+    Vue.prototype.$RequestUtil = RequestUtil;
+    Vue.prototype.$Global = Global;
+    Vue.prototype.$moment = moment;
+    Vue.prototype.$_ = lodash;
+    Vue.prototype.$dashboardPre = dashboard
+    Vue.prototype.$customName = custom
+    FileReader.prototype.readAsBinaryString = function (fileData) {
+      var binary = "";
+      var pt = this;
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        var bytes = new Uint8Array(reader.result);
+        var length = bytes.byteLength;
+        for (var i = 0; i < length; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        pt.content = binary;
+        pt.onload(pt); //页面内data取pt.content文件内容
+      }
+      reader.readAsArrayBuffer(fileData);
+    }
+    // 注册全局公用方法
+    window.commonUtils = CommonUtils;
+    window.SearchUtils = SearchUtils;
+    window.ws = ws;
+    window.operation = operation
+    /* eslint-disable no-new */
+    // screenResize(router, bus)
+    //绑定F11全屏事件
+    keyDownF11();
+    //多页面获取session
+    tabsGetSession()
+    document.onkeydown = (event) => {
+      var e = event || window.event || arguments.callee.caller.arguments[0];
+      //阻止F11全屏，改用html5的API来控制
+      if (e && e.keyCode === 122) {
+        var ele = document.documentElement;
+        if (ele.requestFullscreen) {
+          ele.requestFullscreen();
+        } else if (ele.mozRequestFullScreen) {
+          ele.mozRequestFullScreen();
+        } else if (ele.webkitRequestFullscreen) {
+          ele.webkitRequestFullscreen();
+        } else if (ele.msRequestFullscreen) {
+          ele.msRequestFullscreen();
+        }
+        return false;
+      }
+    };
+
+    router.beforeEach((to, from, next) => {
+      //判断当前url是否是其他网站跳转，并且携带的参数在#之前，不做处理则携带的参数会一致存在于url中
+      let href = window.location.href,hrefArr,url = null
+      if(href.indexOf('?') > -1){
+        hrefArr = href.split('?')
+        if(hrefArr[1].indexOf('#') > -1 || hrefArr[1].indexOf('/') > -1){
+          url = hrefArr[0]
+        }
+      }
+      let pathObj = { path: to.path };
+      let pathArr = to.path.split("/"); let newPath = "";
+      pathArr = pathArr.includes('redirect') ? pathArr.filter((val) => { return val != 'redirect'}) : pathArr
+      if (
+        localStorage.getItem("userHasPer") && 
+        to.path != "/Login" && 
+        to.path != "/login" && 
+        to.path != "/device/equipment/downloadConfiguration"
+        ) {
+        const permissions = JSON.parse(localStorage.getItem("userHasPer"));
+        const urlArr = JSON.parse(localStorage.getItem("allUrl"));
+        if (pathArr.length > 3 && !urlArr.includes(to.path)) {
+          newPath = pathArr.slice(0, 3).join("/");
+          if (!permissions[newPath]) {
+            Message({
+              type: "warning",
+              message: "无该页面权限，已跳转"
+            });
+            pathObj = { path: Object.keys(permissions)[0] };
+          } 
+        } else if (urlArr.includes(to.path) && !permissions[to.path]) {
+          Message({
+            type: "warning",
+            message: "无该页面权限，已跳转"
+          });
+          pathObj = { path: Object.keys(permissions)[0] };
+        } 
+        //当从其他网站跳转时，如果用户名与密码出现在#前，则执行去除操作，反之则按照原来的进行
+        if (url != null) {
+          window.location.href = url + '#' + pathObj.path
+        } else {
+          if(pathObj.path == to.path){
+            next()
+          }else{
+            next(pathObj);
+          }
+        }
+      } else {
+          next();
+      }
+      if (pathObj.path == "/adminHomePage") {
+        Vue.prototype.$eventBus.$emit("darkBack", true);
+      } else {
+        Vue.prototype.$eventBus.$emit("darkBack", false);
+      }
+      return;
+    });
+
+    window.addEventListener("beforeload", (event) => {
+    });
+    window.addEventListener("error", function (e) {
+      const target = e.target; // 当前dom节点
+      const tagName = target.tagName;
+      if (tagName && tagName.toUpperCase() === "IMG") {
+        const count = Number(target.dataset.count) || 0; // 以失败的次数，默认为0
+        const max = 3; // 总失败次数，此时设定为3
+        // 当前异常是由图片加载异常引起的
+        if (count >= max) {
+          target.src = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD//AK3/ALYH+5hX6FV5N4Y/5GHwx/vyf+iJa9ZrysPhoYVShDZu/potDmwWFhhIzhT2bv6aLQ//Z";
+        } else {
+          target.dataset.count = count + 1;
+          target.src = "/static/img/imgLoadError.png";
+        }
+      }
+    }, true);
+
+    Vue.filter("moment", function (value) {
+      if (!value) return "";
+      return moment(value).format("YYYY-MM-DD HH:mm");
+    });
+    Vue.filter("UTC+8", function (value) {
+      if (!value) return "";
+      return moment(value).add(8, "h").format("YYYY-MM-DD HH:mm");
+    });
+
+    // Vue.use(VueAMap);
+    // VueAMap.initAMapApiLoader({
+    //   key: "76aaf2bdb6c38ca25593b6e5ab2194ab",
+    //   plugin: ["CitySearch", "MarkerClusterer"],
+    //   uiVersion: "1.0", //ui库版本，不配置不加载,
+    //   // v: "1.4.4"
+    //   v: "1.4.15"
+    // });
+    (async () => {
+      //获取计算机地址，用于地图poi搜索
+      // await Axios.get("https://restapi.amap.com/v3/ip?key=8325164e247e15eea68b59e89200988b").then(
+      //   (response) => {
+      //     Vue.prototype.$adcode = response.data.adcode;
+      //     common.setAdcode(response.data.adcode);
+      //   }
+      // );
+      new Vue({
+        el: "#app",
+        router,
+        store,
+        components: { App },
+        template: "<App/>"
+      });
+    })();
+  }
+}
+
+```
+
+各自的main.js文件
+
+```js
+import main from '@/main'
+import App from "./App";
+import router from '../../router'
+let JHMain = new main('JH',App,router)
+```
+
+utils.js文件
+
+```js
+//多入口配置
+// 通过glob模块读取modules文件夹下的所有对应文件夹下的js后缀文件，如果该文件存在
+// 那么就作为入口处理
+exports.entries = function () {
+  var entryFiles = glob.sync(PAGE_PATH + '/*/*.js')
+  var map = {}
+  entryFiles.forEach((filePath) => {
+    var filename = filePath.substring(filePath.lastIndexOf('\/') + 1, filePath.lastIndexOf('.'))
+    //筛选客户页面
+    if(custom === null || custom === filename){
+      map[filename] = ["babel-polyfill", './src' + filePath.split('/src')[1]]
+    }
+  })
+  return map
+}
+//多页面输出配置
+// 与上面的多页面入口配置相同，读取modules文件夹下的对应的html后缀文件，然后放入数组中
+exports.htmlPlugin = function () {
+  let entryHtml = glob.sync(PAGE_PATH + '/*/*.html')
+  let arr = []
+  entryHtml.forEach((filePath) => {
+    let filename = filePath.substring(filePath.lastIndexOf('\/') + 1, filePath.lastIndexOf('.'))
+    //筛选客户页面
+    if (custom === null || custom === filename) {
+      let fileName = custom === null ? filename + '.html' : 'index.html'
+      let conf = {
+        // 模板来源
+        template: './src' + filePath.split('/src')[1],
+        // 文件名称
+        filename: fileName,
+        favicon: './static/img/nalc_logo.png',
+        // 页面模板需要加对应的js脚本，如果不加这行则每个页面都会引入所有的js脚本
+        inject: true
+      }
+      if(custom === null){
+        conf.chunks = ['manifest', 'vendor', filename]
+      }
+      if (process.env.NODE_ENV === 'production') {
+        conf = merge(conf, {
+          minify: {
+            removeComments: true,
+            collapseWhitespace: true,
+            removeAttributeQuotes: true
+          },
+          chunksSortMode: 'dependency'
+        })
+      }
+      arr.push(new HtmlWebpackPlugin(conf))
+    }
+  })
+  return arr
+}
+```
+
+webpack.base.conf.js
+
+```js
+entry: {
+    ...utils.entries()
+  },
+```
+
+webpack.dev.conf.js   webpack.prod.conf.js
+
+```js
+ plugins:[].concat(utils.htmlPlugin())
+```
+

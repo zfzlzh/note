@@ -629,7 +629,7 @@ div{
 }
 ```
 
-9.3d从中间出现的悬浮框
+# 9.3d从中间出现的悬浮框
 
 ```scss
 /deep/ .el-dialog__wrapper {
@@ -701,5 +701,27 @@ div{
     width:100%;
     height:100%
   }
+```
+
+# 11.原始滚动条样式修改-webkit
+
+```css
+/*滚动条宽度*/
+      ::-webkit-scrollbar {
+        width: 12px;
+        height: 12px;
+      }
+      /*滚动条里面小方块*/
+      ::-webkit-scrollbar-thumb {
+        border-radius: 5px;
+        -webkit-box-shadow: inset 0 0 5px rgba(10, 10, 10, 0.2);
+        background: rgba(0, 0, 0, 0.2);
+      }
+      /*滚动条里面轨道*/
+      ::-webkit-scrollbar-track {
+        -webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+        border-radius: 0;
+        background: rgba(0, 0, 0, 0.1);
+      }
 ```
 
