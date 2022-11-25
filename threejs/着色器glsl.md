@@ -10,19 +10,19 @@ void main {
 
 ## 关键字
 
-**attribute**：只能用于**顶点着色器**中，用来声明在GLSL中的**全局变量**，被用来表示**顶点信息**
+**attribute**（从缓冲中获取的数据）：只能用于**顶点着色器**中，用来声明在GLSL中的**全局变量**，被用来表示**顶点信息**
 
 ```glsl
 attribute vec4 a_Position  //定义一个叫a_Position的vec4类型的变量
 ```
 
-uniform：既可以在**顶点着色器**中使用，也可以在**片元着色器**中使用，它也是一个**全局变量**，可以是除了数组与结构体的**任何类型**，在顶点着色器和片元着色器定义了同名uniform变量时会被二者共享，即会被所有**顶点和片元共用**，它可以被用来存储变换矩阵，时间纹理等
+**uniform**（在一次绘制中对所有顶点保持一致值）：既可以在**顶点着色器**中使用，也可以在**片元着色器**中使用，它也是一个**全局变量**，可以是除了数组与结构体的**任何类型**，在顶点着色器和片元着色器定义了同名uniform变量时会被二者共享，即会被所有**顶点和片元共用**，它可以被用来存储变换矩阵，时间纹理等
 
 ```glsl
 uniform mat4 modelMatrix //定义一个类型为mat4的名为modelMatrix的变量
 ```
 
-varying：也是一个**全局变量**，与uniform不同的一点是：他必须**同时**在顶点着色器和片元着色器中定义**同名同类型**的varying变量，它的作用是把顶点着色器的数据传递给片元着色器
+**varying**（可变量）：也是一个**全局变量**，与uniform不同的一点是：他必须**同时**在顶点着色器和片元着色器中定义**同名同类型**的varying变量，它的作用是把顶点着色器的数据传递给片元着色器
 
 ```glsl
 //顶点着色器中
@@ -62,6 +62,34 @@ uniform mat4 viewMatrix; // 视图矩阵
 uniform mat4 projectionMatrix; // 投影矩阵
 position // 模型坐标系中的坐标
 ```
+
+## 内置的特殊变量
+
+**vertex Shader** ：
+
+```glsl
+highp vec4 gl_Position;//gl_Position 放置顶点坐标信息
+mediump float gl_PointSize;//gl_PointSize 需要绘制点的大小,(只在gl.POINTS模式下有效)
+```
+
+**fragment Shader**:
+
+```glsl
+//input类型
+mediump vec4 gl_FragCoord;//片元在framebuffer画面的相对位置
+bool gl_FrontFacing;//标志当前图元是不是正面图元的一部分
+mediump vec2 gl_PointCoord;//经过插值计算后的纹理坐标,点的范围是0.0到1.0
+//output类型
+mediump vec4 gl_FragColor;//设置当前片点的颜色
+mediump vec4 gl_FragData[n];//设置当前片点的颜色,使用glDrawBuffers数据数组
+```
+
+
+
+## 流控制
+
+glsl的流控制和c语言非常相似,这里不必再做过多说明,唯一不同的是片段着色器中有一种特殊的控制流`discard`.
+使用discard会退出片段着色器，不执行后面的片段着色操作。片段也不会写入帧缓冲区。
 
 # RawShaderMaterial与ShaderMaterial
 
@@ -286,3 +314,74 @@ precision lowp float;
 ```
 
 ![](C:\Users\zfz\Desktop\笔记\note\threejs\着色器动图.gif)
+
+### 使用ShaderMaterial代码---飘动的布料
+
+index.vue
+
+```js
+//引入自定义着色器
+import vertexShader from './vertexShader.glsl.js'
+import fragmentShader from './fragmentShader.glsl.js'
+//....构建threejs环境代码省略
+function createOffice(){
+    //构建一个1*1的平面，平面的宽度与高度分段数为32，改变宽高，需要同时修改分段数，如50*50，分段数为20
+  const geometry = new THREE.PlaneBufferGeometry(1, 1, 32, 32); 
+  shaderMaterial = new THREE.ShaderMaterial({
+    vertexShader: vertexShader,//赋值自定义着色器--顶点着色器
+    fragmentShader: fragmentShader,//赋值自定义着色器--片段着色器
+    side: THREE.DoubleSide,
+    uniforms:{//自定义着色器中使用的uniform变量
+      uTime:{value:0},//时间
+      uFrequency:{value:new THREE.Vector2(10, 5)},//速度，改变宽高时，10*宽，5*高
+      vElevationX:{value:1.5}//系数，修改宽高时也需修改
+    }
+  });
+  let mesh = new THREE.Mesh(geometry, shaderMaterial);
+  scene.add(mesh)
+}
+
+```
+
+
+
+vertexShader.glsl.js
+
+```js
+//js无法直接导入glsl文件，所以在js文件中使用模板字符串书写导出
+export default /* glsl */ `
+varying float f_height;
+varying vec2 vUv; 
+
+uniform float uTime;
+uniform vec2 uFrequency;
+uniform float vElevationX;
+
+void main() {
+	vUv = uv; 
+	vec4 modelPosition = modelMatrix * vec4(position, 1.0); 
+	//计算z轴坐标，实现飘扬效果
+	float elevation = vElevationX * sin(modelPosition.x * uFrequency.x - uTime);
+  	elevation += 0.1 * sin(modelPosition.y * uFrequency.y - uTime);
+	modelPosition.z += elevation;
+	//传递到片段着色器中生成阴影
+  	f_height = 0.2 * sin(modelPosition.x * uFrequency.x - uTime);
+
+	vec4 viewPosition = viewMatrix * modelPosition;
+	gl_Position = projectionMatrix * viewPosition;
+}`;
+```
+
+fragmentShader.glsl.js
+
+```js
+export default /* glsl */ ` 
+precision lowp float;
+varying float f_height;
+
+void main() {
+  float height = f_height + 1.0;
+  gl_FragColor = vec4(height * 1.0, 0.0, 0.0, 1.0);
+}`;
+```
+

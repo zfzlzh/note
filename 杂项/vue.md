@@ -618,3 +618,34 @@ webpack.dev.conf.js   webpack.prod.conf.js
  plugins:[].concat(utils.htmlPlugin())
 ```
 
+## vue3与ts搭配，v-for出现unknow问题
+
+```vue
+<div 
+      v-for="item in list" //出现提示item是unknow类型
+      :key="item?.id" 
+      :style="`background-image:url('${item?.url}');width:100px;height:100px`" 
+      class="div-image"
+      @click="clickDiv(item)"
+    >
+</div>
+<script>
+//解决方法，引入PropType
+import { ref,PropType} from 'vue'
+//数组内部对象的类型声明
+interface listItem{
+  id:string|number,
+  url:string
+}
+const props = defineProps({
+  list:{
+      //Array as PropType<listItem[]>,不会出现报错
+    type:Array as PropType<listItem[]>,
+    default:()=>[
+      {id:"",url:''}
+    ]
+  }
+})
+</script>
+```
+
