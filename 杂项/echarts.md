@@ -37,3 +37,25 @@ xxx.setOption({
 })
 ```
 
+# 监听dataZoom
+
+```js
+myChart2.on('dataZoom',function(params){
+				// 监听dataZoom事件，获取返回值params
+				console.log(params)
+				console.log(myChart2)
+				let start = params.batch[0].startValue,
+					end = params.batch[0].endValue;
+					console.log('start',start)
+					console.log('end',end)
+					let xList,
+						chartsMap = myChart2._chartsMap;//折线图的数据
+					for(let i in chartsMap){
+						xList = chartsMap[i]._data._idList//折线图的x轴的数据
+					}
+					console.log('xList',xList)
+					let nowArr = [xList[start],xList[end]]//框选的x轴的开头和结尾
+					console.log('nowArr',nowArr)
+			})
+```
+
