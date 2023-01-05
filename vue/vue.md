@@ -618,3 +618,6 @@ webpack.dev.conf.js   webpack.prod.conf.js
  plugins:[].concat(utils.htmlPlugin())
 ```
 
+# 启动报错error:0308010C:digital envelope routines::unsupported
+
+一般为node版本过高，可使用nvm管理多个node版本，报错时替换版本
