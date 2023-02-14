@@ -492,3 +492,25 @@ function convertBase64UrlToBlob(urlData) {
 }
 ```
 
+# ?? 与 ||的区别
+
+?? 只有当左边的值为null或者undefined时才会返回右边的值，||会将左边的值转为布尔值，再去判断，为false返回右边的值
+
+```js
+//??
+undefined ?? 2	// 2
+null ?? 2		// 2
+0 ?? 2			// 0
+"" ?? 2			// ""
+true ?? 2		// true
+false ?? 2		// false
+
+// ||
+undefined || 2	// 2
+null || 2		// 2
+0 || 2			// 2
+"" || 2			// 2
+true || 2		// true
+false || 2		// 2
+```
+
