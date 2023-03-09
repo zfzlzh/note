@@ -18,3 +18,16 @@ npm_mirror:https://npm.taobao.org/mirrors/npm/
 5.nvm ls 可查看所有安装的node版本，与当前选择的版本
 
 6.删除node版本，可用nvm uninstall node版本号，如nvm uninstall 16.17.0 
+
+## 问题
+
+切换版本后提示npm不是内部或外部命令，也不是可运行的程序
+或批处理文件。
+
+到nvm文件夹中查看
+
+默认安装地址C:\Users\Administrator\AppData\Roaming\nvm
+
+查看对应版本文件夹中是否只有一个node.exe，node_modules文件夹为空文件夹
+
+解决方法：官网下载对应node版本压缩包，解压后放入对应文件夹
