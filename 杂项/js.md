@@ -249,6 +249,8 @@ function deepCopy(obj) {
 
 ### 3.上面的#map方法
 
+### 4.高浏览器版本可用 -结构化克隆法---structuredClone(xxx)，
+
 # 7.手动触发window的resize
 
 ```js
@@ -291,7 +293,7 @@ let top = Array(2).fill('1')
 console.log(top)//['1','1']
 ```
 
-## 注意
+### 注意
 
 使用Array(length).fill({ }) 这样填充的数组，里面的每一项{ }都是全相等的,
 
@@ -308,7 +310,7 @@ let  arr_new = Array(6).fill( Object.create({}) )
 console.log(arr_new[1] === arr_new[2])    //true
 ```
 
-## 创建固定长度固定内容的数组
+### 创建固定长度固定内容的数组
 
 ```js
 let arr = new Array(2).fill({ })//或者null都可以，只要不让其只有长度
@@ -319,7 +321,7 @@ arr = arr.map((val)=>{
 })
 ```
 
-# 移动端检测用的是wifi还是流量
+# 11.移动端检测用的是wifi还是流量
 
 ```js
 getNetworkType() {
@@ -351,7 +353,7 @@ getNetworkType() {
         },
 ```
 
-# 视频设置第一帧为封面
+# 12.视频设置第一帧为封面
 
 ```js
 //video标签设置poster(规定视频下载时显示的图像，或者在用户点击播放按钮前显示的图像。).
@@ -378,13 +380,13 @@ getVideoBase64(url) {
     }
 ```
 
-# 本地调试时内存泄漏-console.log
+# 13.本地调试时内存泄漏-console.log
 
 console.log打印的数据不会被垃圾回收机制回收，会对结果造成影响，所以检查内存泄漏时需要去除所有的console.log
 
 ![](C:\Users\zfz\Desktop\笔记\note\杂项\084b82e80f6c9e5d6faad75ea2ada9e0.png)
 
-# 点击的点是否在该段线段上
+# 14.点击的点是否在该段线段上
 
 ```js
 // 排序边上的点
@@ -437,7 +439,7 @@ console.log打印的数据不会被垃圾回收机制回收，会对结果造成
   }
 ```
 
-# 修改图片尺寸，压缩图片
+# 15.修改图片尺寸，压缩图片
 
 ```js
  function cutImages(fileObj, callback) {
@@ -492,7 +494,7 @@ function convertBase64UrlToBlob(urlData) {
 }
 ```
 
-# ?? 与 ||的区别
+# 16.?? 与 ||的区别
 
 ?? 只有当左边的值为null或者undefined时才会返回右边的值，||会将左边的值转为布尔值，再去判断，为false返回右边的值
 
@@ -512,5 +514,126 @@ null || 2		// 2
 "" || 2			// 2
 true || 2		// true
 false || 2		// 2
+```
+
+## 17.字符串书写html，添加到dom的方法
+
+```js
+let a = document.getElementById('xxx')
+let htmlStr = '<div></div>'
+//1.innerHTML
+a.innerHTML = htmlStr
+//2.DOMParser().parseFromString(),返回格式为#document，不能用appedChild等插入，
+//第二个参数为minetype,返回值类型不同
+//text/html -- Document，返回一个HTMLDocument
+//text/xml -- XMLDocument
+//application/xml -- XMLDocument
+//application/xhtml+xml -- XMLDocument
+//image/svg+xml -- XMLDocument
+//
+let parseDom = new DOMParser().parseFromString(a, 'text/html')
+//3.DocumentFragment
+//DocumentFragment 对象表示一个没有父级文件的最小文档对象。它被当做一个轻量版的 
+//Document 使用，用于存储已排好版的或尚未打理好格式的XML片段。最大的区别是因
+//为DocumentFragment不是真实DOM树的一部分，它的变化不会引起DOM树的重新渲染的操作
+//(reflow) ，且不会导致性能等问题
+let virutDom = document.createRange().createContextualFragment(a)
+//document.createDocumentFragment(),创建一个虚拟dom，可以用来包裹拼接好的html
+
+```
+
+
+
+## 18.获取设备部分信息
+
+```js
+//大概得知浏览器种类以及版本号
+navigator.userAgent
+//用户浏览器的默认语言
+navigator.language || navigator.userLanguage || navigator.browserLanguage || navigator.systemLanguage
+//当前浏览器环境所拥有的CPU核心数
+navigator.hardwareConcurrency
+//用户的时区
+new window.Intl.DateTimeFormat().resolvedOptions().timeZone
+//物理像素与CSS像素的比值
+window.devicePixelRatio
+```
+
+## 19.手机打开控制台查看console.log
+
+html文件中引入cdn上的vConsole，或者在github中下载源码，打包获取min文件，在放入项目中引入
+
+```html
+<script src="https://unpkg.com/vconsole@latest/dist/vconsole.min.js "></script>
+<script type="text/javascript">
+    //初始化，cdn引入默认放在window中
+    var vConsole = new window.VConsole();
+</script>
+```
+
+## 20.int16Array与float32Array互转
+
+```js
+function floatTo16Bit(inputArray, startIndex){
+    var output = new Uint16Array(inputArray.length-startIndex);
+    for (var i = 0; i < inputArray.length; i++){
+        var s = Math.max(-1, Math.min(1, inputArray[i]));
+        output[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+    }
+    return output;
+}
+function int16ToFloat32(inputArray, startIndex, length) {
+    var output = new Float32Array(inputArray.length-startIndex);
+    for (var i = startIndex; i < length; i++) {
+        var int = inputArray[i];
+        // If the high bit is on, then it is a negative number, and actually counts backwards.
+        var float = (int >= 0x8000) ? -(0x10000 - int) / 0x8000 : int / 0x7FFF;
+        output[i] = float;
+    }
+    return output;
+}
+```
+
+## 21.新标签页打开空白页面，生成对应的代码，并绑定事件和修改标签名称
+
+```js
+let vrReport = window.open('/viewer/dist/vrReport.html');//一个初始化的html文件，直接用''会打开新窗口
+let reportHtml = createReport()//构建html的方法，获得dom
+vrReport.onload = () => {//onload方法里执行
+  vrReport.document.write(reportHtml.outerHTML)//写入dom的outerHTML
+  bindEvent(vrReport)//绑定需要的事件，在新页面的document中寻找元素
+  vrReport.document.title = 'AI重建结构化报告'//修改标题，放在写入后面，不然会被覆盖
+}
+```
+
+## 22.计算某个三维点旋转后的坐标
+
+```js
+// 定义向量 Vector3
+var vector = [1, 2, 3]; // 这里假设向量为[x, y, z]
+ 
+// 定义矩阵 Matrix
+var matrix = [[0.5, -0.866, 0], [-0.866, 0.5, 0], [0, 0, 1]]; // 这里假设矩阵为[[a, b, c], [d, e, f], [g, h, i]]
+ 
+// 将向量应用于矩阵进行旋转操作
+function rotate(vector, matrix) {
+    var result = [];
+    
+    for (let i = 0; i < vector.length; i++) {
+        let sum = 0;
+        
+        for (let j = 0; j < vector.length; j++) {
+            sum += vector[j] * matrix[i][j];
+        }
+        
+        result.push(sum);
+    }
+    
+    return result;
+}
+ 
+// 调用函数并输出结果
+console.log("旋转前的向量：", vector);
+console.log("旋转后的向量：", rotate(vector, matrix));
 ```
 

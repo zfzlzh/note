@@ -267,7 +267,7 @@ update();
 
 # 删除数据
 
-**IDBObjectStore.delete()**方法用于删除记录，参数为主键
+**IDBObjectStore.delete()**方法用于删除记录，参数为主键,**IDBObjectStore.clear()**为清空
 
 ```js
 function remove() {
@@ -356,4 +356,24 @@ var r9 = IDBKeyRange.only(z);
 - `IDBKeyRange.upperOpen`：布尔值，表示上限是否为开区间（即上限是否排除在范围之外）
 
 IDBKeyRange 有一个实例方法`includes(key)`，返回一个布尔值，表示某个主键是否包含在当前这个主键组之内。
+
+```js
+let data = [];
+let requeset = db.transaction(['person'], 'readonly')
+    .objectStore('person')
+    .index('age')
+    .openCursor(IDBKeyRange.bound(9, 10))
+requeset.onsuccess = function (event) {
+    let res = event.target.result;
+    if (res) {
+        data.push(res.value);
+        res.continue();
+    } else {
+        console.log('读取数据成功：', data);
+    }
+}
+requeset.onerror = function () {
+    console.log('读取数据失败')
+}
+```
 

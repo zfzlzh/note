@@ -1,0 +1,1 @@
+00200032代表image position，为[x,y,z],00201041为slice location，即z坐标
