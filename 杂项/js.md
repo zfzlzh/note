@@ -637,3 +637,30 @@ console.log("旋转前的向量：", vector);
 console.log("旋转后的向量：", rotate(vector, matrix));
 ```
 
+23.base64与file或blob转化
+
+```js
+//base64转为file或blob
+var base64 = document.querySelector('#content_right canvas').toDataURL();
+var arr = base64.split(',');
+var mime = arr[0].match(/:(.*?);/)[1];
+var bstr = atob(arr[1])
+var n = bstr.length
+var u8arr = new Uint8Array(n);
+while(n--){
+    u8arr[n] = bstr.charCodeAt(n)
+}
+//file为new File，blob为new Blob
+var file = new File([u8arr],'xxx',{type:mime})
+//file或blob转为base64
+var reader = new FileReader();
+reader.readAsDataURL(file);
+reader.onload = () => {
+    var img = document.createElement('img')
+    img.style = 'width:300px;height:300px;position:absolute;z-index:99999;top:0;left:0'
+    img.src = reader.result
+    document.body.appendChild(img)
+    
+}
+```
+

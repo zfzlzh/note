@@ -762,3 +762,9 @@ div{
 }
 ```
 
+## 14.修改:root中--xxx的值
+
+```js
+document.documentElement.style.setProperty('--now-height', 1920)//需要在根元素生成以后执行
+```
+
