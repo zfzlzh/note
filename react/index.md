@@ -30,3 +30,21 @@ const createRoute = (Node: LazyExoticComponent<React.FC>) => {
 
 ```
 
+## 导入路径不能以“.tsx”扩展名结束。考虑改为导入“./App.js”
+
+```tsx
+//vite-env.d.ts
+declare module '*.tsx'
+```
+
+## react-dom/client没有默认导出
+
+```json
+//tsconfig.json
+{
+	"compilerOptions":{
+		"esModuleInterop": true
+	}
+}
+```
+

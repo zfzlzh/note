@@ -29,7 +29,10 @@ function setActiveAnnotationTool(toolName){
 //stack
 let enabledElement = getEnabledElement(stackDom)
 const { viewport } = enabledElement;
-viewport.setImageIdIndex(index)
+let newImageIndex = lesion.index + 1
+viewport.setImageIdIndex(newImageIndex)
+//如果启用了StackScrollMouseWheelTool，此步必加，不然跳转后滑动滚轮依旧从上一次滚轮达到的位置开始滚动，而不是跳转的位置
+viewport.targetImageIdIndex = newImageIndex
 //volume
 import * as cornerstoneTools from '@cornerstonejs/tools'
 const { 
@@ -254,5 +257,31 @@ function removeAnnotation(annotationUID){
 function removeAllAnnotation(){
     annotation.state.removeAllAnnotation()
 }
+```
+
+## 6.直接设置调窗值
+
+```js
+//转化调窗值
+let windows = [1500,-600];//[windowidth,windowCenter]
+let {lower,upper} = coreUtilities.windowLevel.toLowHighRange(windows[0],windows[1])
+//lowhighRange转化为windowLevel使用同路径下的toWindowLevel方法
+//stack
+let enabledElement = getEnabledElement(originAxialDom.value)
+const { viewport } = enabledElement
+viewport.setVOI({lower,upper},{
+    forceRecreateLUTFunction:true,
+    voiUpdatedWithSetProperties:true,
+})
+//volume
+let domArr = [AxialDom,SagittalDom,CoronalDom]
+domArr.forEach(val => {
+    let enabledElement = getEnabledElement(val)
+    const { viewport } = enabledElement
+    let actor = viewport.getActors()[0].actor
+    actor.getProperty()
+         .getRGBTransferFunction(0)
+         .setMappingRange(lower, upper)
+})
 ```
 
