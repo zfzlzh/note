@@ -95,3 +95,29 @@
         },
 ```
 
+## 3.svg设置了transform:scale，mouseup获取的点位错误
+
+因为`mouseup`事件中的坐标是相对于原始元素位置的，如果元素的尺寸或位置发生变化（例如通过缩放操作），那么这些坐标可能不再准确反映用户的实际点击位置。
+
+解决方法：
+
+1. 获取事件目标的CTM（当前变换矩阵），它可以帮助你转换坐标。
+2. 使用`matrix.inverse()`方法得到逆矩阵，这样你可以从新的坐标系统转换回原始坐标系统。
+3. 使用`SVGMatrix`接口的`translate`和`scale`方法来手动转换点击坐标
+
+```js
+svgElement.addEventListener('mouseup', function(event) {
+    var ctm = event.target.getScreenCTM();
+    var matrix = ctm.inverse();
+ 
+    var point = svgDocument.createSVGPoint();
+    point.x = event.clientX;
+    point.y = event.clientY;
+ 
+    var transformedPoint = point.matrixTransform(matrix);
+ 
+    console.log('Transformed point:', transformedPoint);
+    // 使用转换后的点进行后续操作
+});
+```
+

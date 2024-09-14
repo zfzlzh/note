@@ -516,7 +516,7 @@ true || 2		// true
 false || 2		// 2
 ```
 
-## 17.字符串书写html，添加到dom的方法
+# 17.字符串书写html，添加到dom的方法
 
 ```js
 let a = document.getElementById('xxx')
@@ -544,7 +544,7 @@ let virutDom = document.createRange().createContextualFragment(a)
 
 
 
-## 18.获取设备部分信息
+# 18.获取设备部分信息
 
 ```js
 //大概得知浏览器种类以及版本号
@@ -559,7 +559,7 @@ new window.Intl.DateTimeFormat().resolvedOptions().timeZone
 window.devicePixelRatio
 ```
 
-## 19.手机打开控制台查看console.log
+# 19.手机打开控制台查看console.log
 
 html文件中引入cdn上的vConsole，或者在github中下载源码，打包获取min文件，在放入项目中引入
 
@@ -571,7 +571,7 @@ html文件中引入cdn上的vConsole，或者在github中下载源码，打包�
 </script>
 ```
 
-## 20.int16Array与float32Array互转
+# 20.int16Array与float32Array互转
 
 ```js
 function floatTo16Bit(inputArray, startIndex){
@@ -594,7 +594,7 @@ function int16ToFloat32(inputArray, startIndex, length) {
 }
 ```
 
-## 21.新标签页打开空白页面，生成对应的代码，并绑定事件和修改标签名称
+# 21.新标签页打开空白页面，生成对应的代码，并绑定事件和修改标签名称
 
 ```js
 let vrReport = window.open('/viewer/dist/vrReport.html');//一个初始化的html文件，直接用''会打开新窗口
@@ -606,7 +606,7 @@ vrReport.onload = () => {//onload方法里执行
 }
 ```
 
-## 22.计算某个三维点旋转后的坐标
+# 22.计算某个三维点旋转后的坐标
 
 ```js
 // 定义向量 Vector3
@@ -637,7 +637,7 @@ console.log("旋转前的向量：", vector);
 console.log("旋转后的向量：", rotate(vector, matrix));
 ```
 
-23.base64与file或blob转化
+# 23.base64与file或blob转化
 
 ```js
 //base64转为file或blob
@@ -662,5 +662,192 @@ reader.onload = () => {
     document.body.appendChild(img)
     
 }
+```
+
+# 24.new Proxy自定义简易watch
+
+```js
+/**
+ * 设置监听变化
+ * @param {*} obj -- 初始对象
+ * @param {*} setBind -- set事件时触发的方法 
+ * @param {*} getLogger -- get事件时触发的方法
+ * @returns Proxy
+ */
+let onWatch = (obj, setBind, getLogger) => {
+  let handler = {
+    get(target, property, receiver) {
+      getLogger && getLogger(target, property)
+      return Reflect.get(target, property, receiver)
+    },
+    set(target, property, value, receiver) {
+        let oldVal = target[property]
+        target[property] = value
+        setBind(value, property,target,oldVal)
+      return Reflect.set(target, property, value)
+    }
+  }
+  return new Proxy(obj, handler)
+}
+
+//使用
+let watchxx = onWatch({value:''},(target, property, value,oldVal)=>{},(target, property)=>{})
+//watchxx.value = xxx会触发set里的事件
+```
+
+## 25.16进制颜色与rgba互转
+
+```js
+//16转rgba
+function hexToRgba(hex) {
+ let hexColor = hex
+ if(hex.length == 4){
+      hexColor = hex.replace(/^#?([a-f\d])([a-f\d])([a-f\d])$/i, (m, r, g, b) => "#" + r + r + g + g + b + b);
+  }
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})?$/i.exec(hexColor);
+  const r = parseInt(result[1], 16);
+  const g = parseInt(result[2], 16);
+  const b = parseInt(result[3], 16);
+  const a = result[4] ? Math.floor(parseInt(result[4], 16) / 255) : 1;
+ 
+  return {rgba:`rgba(${r}, ${g}, ${b}, ${a})`,r,g,b,a};
+}
+//rgba转16
+function rgbaToHex(r, g, b, a) {
+  const toHex = (num) => {
+    const hex = num.toString(16);
+    return hex.length === 1 ? '0' + hex : hex;
+  };
+ 
+  const hexR = toHex(r);
+  const hexG = toHex(g);
+  const hexB = toHex(b);
+  const hexA = Math.round(a * 255).toString(16);
+ 
+  return `#${hexR}${hexG}${hexB}${hexA}`;
+}
+```
+
+## 26.reduce配合promise
+
+```js
+//处理blob到base64
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = function(event) {
+          resolve(event.target.result);
+      };
+      reader.onerror = function(error) {
+          reject(error);
+      };
+      reader.readAsDataURL(blob);
+  });
+}
+//处理数据，使用reduce
+async function handleDefaultImages(data){
+  return Object.keys(data.render).reduce(async (pre,val) => {
+    //pre需要使用await接收
+    pre = await pre;
+    let item = data.render[val]
+    let image = item.image
+    // let img = typeof image == 'string' ? `data:image/${item.format},${image}` : window.URL.createObjectURL(image)
+    let img = typeof image == 'string' ? `data:image/${item.format},${image}` : await blobToBase64(image)
+    //切割返回的图片名字
+    let arr = val.split('_')
+    //当第一位是VR时，判断第二位是否为mip，是则返回mip，否则返回vr，其他多为lesions
+    let key = arr[0] == 'VR' ? arr[1] == 'mip' ? 'mip' : 'vr' : 'lesions'
+    if(!pre[key]){
+      pre[key] = {}
+    }
+    let last = arr[arr.length - 1]
+    if(arr[0] == 'VR'){
+      //以最后一位为key，back与front
+      pre[key][last] = img
+    }else{
+      
+      //以最后一位为key，
+      if(!pre[key][last]){
+        pre[key][last] = {}
+      }
+      //如果长度为3位，则使用第一位，MIP与MinIP，否则使用第二位A,C,S，代表axial，coronal，sagittal
+      let lesionKey = arr.length == 3 ? arr[0] : arr[2]
+      pre[key][last][lesionKey] = img
+    }
+    return pre
+    //pre的初始值要是使用Promise.resolve包裹的值
+  },Promise.resolve({}))
+}
+//调用
+function handleImage(){
+    handleDefaultImages(data).then((res) => {
+       Object.keys(res).forEach((val,index) => {
+           setDefaultImages({type:val,imgs:res[val]})
+        })
+        callback && callback()
+    })
+}
+
+```
+
+## 27.图片镜面翻转
+
+### 1.使用css
+
+```html
+<!-- 使用css，transform:scaleX(-1) || scaleY(-1);分别为左右镜像翻转与上下镜面翻转 -->
+<header>
+	<style>
+		.reverseY{
+			transform:scaleY(-1)
+		}
+	</style>
+</header>
+<body>
+	<img src="图片地址" />
+<body>
+```
+
+### 2.使用canvas
+
+```js
+let image = new Image()
+image.src = '图片地址'
+image.onload = () => {
+    const ctx = canvas.getContext("2d");
+    //上下镜面翻转
+    ctx.translate(0, item.size[1])
+    ctx.scale(1, -1)
+    ctx.drawImage(imageDom,0,0,item.size[0],item.size[1])
+    //.....后续操作
+} 
+
+```
+
+### 3.直接计算图片源数据
+
+```js
+function imageDataVRevert(sourceData, newData) {
+      for (let i = 0, h = sourceData.height; i < h; i++) {
+        for (let j = 0, w = sourceData.width; j < w; j++) {
+          newData.data[i * w * 4 + j * 4 + 0] = sourceData.data[(h - i) * w * 4 + j * 4 + 0];
+          newData.data[i * w * 4 + j * 4 + 1] = sourceData.data[(h - i) * w * 4 + j * 4 + 1];
+          newData.data[i * w * 4 + j * 4 + 2] = sourceData.data[(h - i) * w * 4 + j * 4 + 2];
+          newData.data[i * w * 4 + j * 4 + 3] = sourceData.data[(h - i) * w * 4 + j * 4 + 3];
+        }
+      }
+      return newData;
+    }
+//使用
+let image = new Image()
+let ctx = canvas.getContext('2d')
+image.src = '图片地址'
+image.onload = () => {
+    ctx.drawImage(img, 0, 0, 210, 80);
+    let imgData = ctx.getImageData(0, 0, 210, 80);
+    let newImgData = ctx.getImageData(0, 0, 210, 80);
+    ctx.putImageData(imageDataVRevert(newImgData, imgData), 0, 0);  //上下翻转
+} 
+     
 ```
 

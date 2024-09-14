@@ -78,3 +78,33 @@ function handle() {
 worker = new Worker('dist/webWorker/worker_f.js')
 ```
 
+## import导入js文件，将其作为webworker文件使用
+
+webpack配置worker-loader
+
+```js
+//webpack.config.js
+module: {
+    rules: [
+      {
+        test: /\.customWorker\.js$/,//后缀自定，一般为worker.js
+        use: [{ loader: "worker-loader", options: { inline: "no-fallback" } }],
+      },
+    ],
+  },
+```
+
+```js
+//main.js
+import workerFile from './worker.customWorker.js';
+let worker = new workerFile();//worker-loader会将指定后缀的文件打包为构造函数形式的worker文件
+//worker操作.....
+```
+
+```js
+//worker.customWorker.js
+//与普通文件书写无异
+import  xxx from 'xxxx';
+//操作....
+```
+
