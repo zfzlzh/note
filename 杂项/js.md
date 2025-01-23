@@ -695,7 +695,7 @@ let watchxx = onWatch({value:''},(target, property, value,oldVal)=>{},(target, p
 //watchxx.value = xxx会触发set里的事件
 ```
 
-## 25.16进制颜色与rgba互转
+# 25.16进制颜色与rgba互转
 
 ```js
 //16转rgba
@@ -728,7 +728,7 @@ function rgbaToHex(r, g, b, a) {
 }
 ```
 
-## 26.reduce配合promise
+# 26.reduce配合promise
 
 ```js
 //处理blob到base64
@@ -790,7 +790,7 @@ function handleImage(){
 
 ```
 
-## 27.图片镜面翻转
+# 27.图片镜面翻转
 
 ### 1.使用css
 
