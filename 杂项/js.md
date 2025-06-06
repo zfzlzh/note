@@ -851,3 +851,112 @@ image.onload = () => {
      
 ```
 
+# 28.js实现单页签
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>单页应用示例</title>
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href="#home">首页</a></li>
+            <li><a href="#about">关于</a></li>
+            <li><a href="#contact">联系我们</a></li>
+        </ul>
+    </nav>
+    <div id="content"></div>
+ 
+    <script src="app.js"></script>
+</body>
+</html>
+```
+
+
+
+```js
+document.addEventListener('DOMContentLoaded', function() {
+    const contentDiv = document.getElementById('content');
+    const routes = {
+        '#home': '<h1>欢迎来到首页</h1><p>这是首页的内容。</p>',
+        '#about': '<h1>关于我们</h1><p>这是关于我们的内容。</p>',
+        '#contact': '<h1>联系我们</h1><p>这是联系我们的内容。</p>'
+    };
+ 
+    function loadContent() {
+        const hash = window.location.hash;
+        if (hash in routes) {
+            contentDiv.innerHTML = routes[hash];
+        } else {
+            contentDiv.innerHTML = '<h1>404 页面未找到</h1>';
+        }
+    }
+ 
+    window.addEventListener('hashchange', loadContent);
+    loadContent(); // 初始加载内容
+});
+```
+
+### 不使用a标签
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPA Example</title>
+</head>
+<body>
+    <nav>
+        <button data-route="/">Home</button>
+        <button data-route="/about">About</button>
+        <button data-route="/contact">Contact</button>
+    </nav>
+    <div id="app"></div>
+    <script src="app.js"></script>
+</body>
+</html>
+```
+
+
+
+```js
+// app.js
+const routes = {
+    '/': 'Home Page',
+    '/about': 'About Page',
+    '/contact': 'Contact Page'
+};
+
+function render(path) {
+    const app = document.getElementById('app');
+    app.innerHTML = routes[path] || '404 Not Found';
+}
+
+function navigateTo(path) {
+    window.history.pushState({}, path, window.location.origin + path);
+    render(path);
+}
+
+window.onpopstate = function(event) {
+    render(window.location.pathname);
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.body.addEventListener('click', (e) => {
+        if (e.target.matches('button[data-route]')) {
+            const path = e.target.getAttribute('data-route');
+            navigateTo(path);
+        }
+    });
+
+    // Initial render
+    render(window.location.pathname);
+});
+```
+

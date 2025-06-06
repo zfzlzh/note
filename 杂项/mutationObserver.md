@@ -11,7 +11,7 @@ Mutation Observer 有以下特点：
 ```js
 let dom = document.getElementById('xxx')
 var observer = new MutationObserver((mutations,observer) => {
-        console.log(mutation)
+        console.log(mutations)
     	console.log(observer)
 });
 var config = { attributes: true, childList: true, characterData: true };
