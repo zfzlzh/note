@@ -960,3 +960,41 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 ```
 
+# 29.插入元素到另一个元素后面，另一个元素不是其父元素下最后一个元素
+
+### 方法1：找到另一个元素的兄弟元素，使用`insertBefore`
+
+```js
+// 假设有两个元素
+var referenceNode = document.getElementById('reference');
+var newNode = document.createElement('div');
+newNode.innerHTML = '这是新内容';
+ 
+// 获取referenceNode的下一个兄弟节点
+var nextSibling = referenceNode.nextSibling;
+ 
+// 如果referenceNode是最后一个节点，nextSibling将是null
+if (nextSibling) {
+    // 将newNode插入到referenceNode的下一个兄弟节点之前
+    referenceNode.parentNode.insertBefore(newNode, nextSibling);
+} else {
+    // 如果没有下一个兄弟节点，将newNode作为最后一个子节点添加
+    referenceNode.parentNode.appendChild(newNode);
+}
+```
+
+### 方法2：使用`insertAdjacentElement`
+
+`insertAdjacentElement`方法可以在一个元素旁边插入一个新的元素。如果你想要将一个元素插入到另一个元素的后面，可以使用`afterbegin`、`beforeend`、`afterend`或`beforebegin`属性。插入到后面需要使用afterend
+
+```js
+const span = document.getElementById("mySpan");
+const h2 = document.getElementById("myH2");
+h2.insertAdjacentElement("afterend", span);
+/**
+	结果：
+	<h2></h2>
+	<span></span>
+*/
+```
+
